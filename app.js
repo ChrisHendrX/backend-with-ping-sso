@@ -40,7 +40,7 @@ app.use((error, request, response, next) => {
   const isDevelopment = request.app.get('env') === 'development';
   response.locals.message = error.message;
   response.locals.error = isDevelopment ? error : {};
-  // if (isDevelopment) console.log('error', response.locals);
+  if (isDevelopment) console.log('error', response.locals);
   response.status(error.status || 500);
   response.json(error);
 });
