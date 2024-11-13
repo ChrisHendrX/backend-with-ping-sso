@@ -1,28 +1,27 @@
+const { Issuer, Strategy } = require('openid-client');
+const configuration = require('../configuration');
 const passport = require('passport');
-const OpenIdConnectStrategy = require('passport-openidconnect').Strategy;
-const configuration = require('../configuration')
 
-const buildStrategy = (buCode = 'group') => {
+const getOpenIdClient = async (buCode = 'group') => {
   const clients = configuration.clients;
   if (!clients[buCode]) throw new Error(`Client not found : ${buCode}`);
-  return new OpenIdConnectStrategy({
-    issuer: process.env.OAUTH_CLIENT_ISSUER,
-    authorizationURL: `${process.env.OAUTH_CLIENT_ISSUER}/as/authorization.oauth2`,
-    tokenURL: `${process.env.OAUTH_CLIENT_ISSUER}/as/token.oauth2`,
-    userInfoURL: `${process.env.OAUTH_CLIENT_ISSUER}/idp/userinfo.openid`,
-    clientID: clients[buCode].client_id,
-    clientSecret: clients[buCode].client_secret,
-    callbackURL: `http://localhost:3000/auth/callback/${buCode}`,
-    scope: 'openid groups profile email advprofile',
-  },
-  (issuer, profile, done) => {
-    done(null, profile);
+  const issuer = await Issuer.discover(process.env.OAUTH_CLIENT_ISSUER);
+  const { client_id, client_secret } = clients[buCode];
+  const client = new issuer.Client({
+    client_id,
+    client_secret,
+    redirect_uris: [`http://localhost:3000/auth/callback/${buCode}`],
+    response_types: ['code'],
+    token_endpoint_auth_method: 'client_secret_post',
   });
+  return client;
 }
-const oidcMiddleware = (request, response, next) => {
+const oidcMiddleware = async (request, response, next) => {
   try {
-    const strategy = buildStrategy(request.params.buCode);
-    passport.use('openidconnect', strategy);
+    const client = await getOpenIdClient(request.params.buCode);
+    passport.use('oidc', new Strategy({ client }, (tokenSet, user, done) => {
+      return done(null, { ...tokenSet.claims(), buCode: request.params.buCode });
+    }));
     next();
   } catch (error) {
     response.status(400).send(`Unable to configure strategy for client ${buCode}`);

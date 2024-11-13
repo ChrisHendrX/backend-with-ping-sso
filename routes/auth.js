@@ -3,25 +3,24 @@ const router = express.Router();
 const passport = require('passport');
 const oidcMiddleware = require('../middlewares/oidc');
 
-router.get('/login/:buCode', oidcMiddleware, passport.authenticate('openidconnect'));
+router.get('/login/:buCode', oidcMiddleware, passport.authenticate('oidc', {
+  scope: 'openid groups profile email advprofile',
+}));
 
-router.get('/callback/:buCode', (request, response, next) => {
-  const { buCode } = request.params;
-  passport.authenticate('openidconnect', {
-    successRedirect: `/v1/${buCode}`,
-    failureRedirect: `/login/${buCode}`
+
+router.get('/callback/:buCode', (request, response, next) =>{
+  passport.authenticate('oidc', {
+    successRedirect: `/v1/${request.params.buCode}`,
+    failureRedirect: `/login/${request.params.buCode}`,
   })(request, response, next);
 });
 
-router.post('/logout', (request, response) => {
+router.get('/logout', (request, response) => {
   const endSessionUrl = `${process.env.OAUTH_CLIENT_ISSUER}/idp/startSLO.ping`;
   const postLogoutRedirectUri = 'http://localhost:3000/v1/group';
-  request.logout((err) => {
+  request.session.destroy((err) => {
     if (err) return next(err);
-    request.session.destroy((err) => {
-      if (err) return next(err);
-      response.redirect(`${endSessionUrl}?TargetResource=${postLogoutRedirectUri}`);
-    });
+    response.redirect(`${endSessionUrl}?TargetResource=${postLogoutRedirectUri}`);
   });
 });
 
