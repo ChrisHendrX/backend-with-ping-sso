@@ -13,7 +13,7 @@ const buildStrategy = (buCode = 'group') => {
     clientID: clients[buCode].client_id,
     clientSecret: clients[buCode].client_secret,
     callbackURL: `http://localhost:3000/auth/callback/${buCode}`,
-    scope: 'openid groups profile email advprofile'
+    scope: 'openid groups profile email advprofile',
   },
   (issuer, profile, done) => {
     done(null, profile);

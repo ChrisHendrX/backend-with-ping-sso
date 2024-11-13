@@ -7,7 +7,6 @@ const passport = require('passport');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
-const oidcMiddleware = require('./middlewares/oidc');
 const authRouter = require('./routes/auth');
 const protectedRouter = require('./routes/protected');
 
@@ -22,8 +21,6 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser((user, done) => {
   done(null, user)
 });
-
-// app.use(oidcMiddleware);
 
 app.use(logger('dev'));
 app.use(express.json());
