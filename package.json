@@ -1,0 +1,26 @@
+{
+  "name": "backend-with-sso",
+  "version": "1.0.0",
+  "description": "Express app with sso authentication",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon ./bin/www"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ChrisHendrX/backend-with-ping-sso.git"
+  },
+  "author": "ChrisHendrX",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ChrisHendrX/backend-with-ping-sso/issues"
+  },
+  "homepage": "https://github.com/ChrisHendrX/backend-with-ping-sso#readme",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}
