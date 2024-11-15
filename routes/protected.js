@@ -3,7 +3,7 @@ const { logRefererMiddleware } = require('../middlewares/test');
 const { authenticateJWT } = require('../middlewares/auth');
 const router = express.Router();
 
-router.get('/:buCode', logRefererMiddleware, authenticateJWT, (request, response) => {
+router.get('/:buCode', authenticateJWT, (request, response) => {
   return response.json(request.user)
 });
 

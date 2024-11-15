@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { openIdProvider } = require('../middlewares/auth');
+const { openIdProvider, authenticateJWT } = require('../middlewares/auth');
 const { cookieOptions, maxAge } = require('../configuration');
 const { createUserToken } = require('../utils/token');
 
@@ -34,10 +34,11 @@ router.post('/logout', (request, response) => {
   const url = new URL('idp/startSLO.ping', process.env.OAUTH_CLIENT_ISSUER);
   response.clearCookie(process.env.JWT_COOKIE_NAME, cookieOptions);
   url.searchParams.append('TargetResource', process.env.FRONT_END_BASE_URL);
-  request.session.destroy((err) => {
-    if (err) return next(err);
-    return response.json({ redirectUrl: url.href });
-  });
+  return response.json({ redirectUrl: url.href });
+});
+
+router.get('/status/:buCode', authenticateJWT, (request, response) => {
+  return response.json(request.user.userInfos);
 });
 
 module.exports = router;

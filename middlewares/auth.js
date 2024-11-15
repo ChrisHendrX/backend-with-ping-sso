@@ -29,12 +29,11 @@ const openIdProvider = async (request, response, next) => {
 
 const authenticateJWT = (request, response, next) => {
   const token = request.cookies[process.env.JWT_COOKIE_NAME];
-  // TODO:Check if the buCode in the token is the same as the one in the URL
   if (!token) return response.sendStatus(401);
-
   const secretKey = process.env.JWT_SECRET_KEY;
   jwt.verify(token, secretKey, (err, user) => {
     if (err) return response.sendStatus(403);
+    if (user.userInfos.buCode !== request.params.buCode) return response.sendStatus(401);
     request.user = user;
     next();
   });
