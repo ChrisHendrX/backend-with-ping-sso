@@ -34,6 +34,7 @@ const authenticateJWT = (request, response, next) => {
   jwt.verify(token, secretKey, (err, user) => {
     if (err) return response.sendStatus(403);
     if (user.userInfos.buCode !== request.params.buCode) return response.sendStatus(401);
+    // TODO: Check if token is still valid
     request.user = user;
     next();
   });

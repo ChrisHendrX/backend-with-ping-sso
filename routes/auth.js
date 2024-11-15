@@ -7,7 +7,7 @@ const { createUserToken } = require('../utils/token');
 router.get('/login/:buCode', openIdProvider, (request, response, next) => {
   const client = request.oidcClient;
   const authorizationUrl = client.authorizationUrl({
-    scope: 'openid profile email advprofile groups',
+    scope: 'openid profile email advprofile groups offline_access',
   });
   response.redirect(authorizationUrl);
 });
@@ -39,6 +39,10 @@ router.post('/logout', (request, response) => {
 
 router.get('/status/:buCode', authenticateJWT, (request, response) => {
   return response.json(request.user.userInfos);
+});
+
+router.get('/ping/:buCode', authenticateJWT, (request, response) => {
+  return response.json(request.user.credentials.ping.access_token);
 });
 
 module.exports = router;
