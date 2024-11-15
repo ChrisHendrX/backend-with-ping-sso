@@ -1,6 +1,5 @@
 const createError = require('http-errors');
 const express = require('express');
-// const { Issuer } = require('openid-client');
 const session = require('express-session');
 const logger = require('morgan');
 const passport = require('passport');
@@ -8,6 +7,7 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 require('dotenv').config();
 
+const { cookieOptions } = require('./configuration');
 const authRouter = require('./routes/auth');
 const protectedRouter = require('./routes/protected');
 
@@ -17,11 +17,7 @@ const sessionOptions = {
   secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: true,
-  cookie: {
-    secure: app.get('env') === 'production',
-    httpOnly: true,
-    sameSite: 'Lax'
-  } 
+  cookie: cookieOptions,
 };
 
 const corsOptions = { origin: process.env.FRONT_END_BASE_URL, credentials: true };
