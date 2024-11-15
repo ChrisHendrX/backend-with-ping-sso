@@ -5,6 +5,7 @@ const session = require('express-session');
 const logger = require('morgan');
 const passport = require('passport');
 const cookieParser = require('cookie-parser');
+const cors = require('cors');
 require('dotenv').config();
 
 const authRouter = require('./routes/auth');
@@ -12,15 +13,30 @@ const protectedRouter = require('./routes/protected');
 
 const app = express();
 
-app.use(session({ secret: 'sessionSecret', resave: false, saveUninitialized: true }));
+const sessionOptions = { 
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    secure: app.get('env') === 'production',
+    httpOnly: true,
+    sameSite: 'Lax'
+  } 
+};
+
+const corsOptions = { origin: process.env.FRONT_END_BASE_URL, credentials: true };
+
+app.use(cors(corsOptions));
+app.use(session(sessionOptions));
+
 app.use(passport.initialize());
 app.use(passport.session());
-passport.serializeUser((user, done) => {
-  done(null, user)
-});
-passport.deserializeUser((user, done) => {
-  done(null, user)
-});
+
+// save to session => req.session.passport.user
+passport.serializeUser((user, done) => done(null, user));
+
+// user object attached to the request as req.user
+passport.deserializeUser((payload, done) => done(null, payload));
 
 app.use(logger('dev'));
 app.use(express.json());

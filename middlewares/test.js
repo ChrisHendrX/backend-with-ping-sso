@@ -5,4 +5,4 @@ const logRefererMiddleware = (req, res, next) => {
   next();
 };
 
-module.exports = logRefererMiddleware;
+module.exports = { logRefererMiddleware };

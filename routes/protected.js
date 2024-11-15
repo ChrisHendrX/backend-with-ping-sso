@@ -1,12 +1,13 @@
 const express = require('express');
+const { logRefererMiddleware } = require('../middlewares/test');
+const { oidcMiddleware } = require('../middlewares/auth');
 const router = express.Router();
 
-// Login route
-router.get('/:buCode', (req, res) => {
-  if (req.isAuthenticated()) {
-    res.send(`Hello ${req.user.name} ${req.user.uid}, bu : ${req.params.buCode}, email : ${req.user.email}`);
+router.get('/:buCode', logRefererMiddleware, oidcMiddleware, (request, response) => {
+  if (request.isAuthenticated()) {
+    response.json(request.user)
   } else {
-    res.status(401).send('Unauthorized');
+    response.status(401).send('Unauthorized');
   }
 });
 

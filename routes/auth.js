@@ -1,26 +1,38 @@
 const express = require('express');
 const router = express.Router();
 const passport = require('passport');
-const oidcMiddleware = require('../middlewares/oidc');
+const { oidcMiddleware } = require('../middlewares/auth');
 
-router.get('/login/:buCode', oidcMiddleware, passport.authenticate('oidc', {
-  scope: 'openid groups profile email advprofile',
-}));
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'Lax',
+  maxAge: 30000 // Durée de validité du cookie (30 secondes)
+}
+router.get('/login/:buCode', oidcMiddleware, passport.authenticate('oidc'));
 
 
-router.get('/callback/:buCode', (request, response, next) =>{
-  passport.authenticate('oidc', {
-    successRedirect: `/v1/${request.params.buCode}`,
-    failureRedirect: `/login/${request.params.buCode}`,
-  })(request, response, next);
+router.get('/callback/:buCode', (request, response, next) => {
+  const failureRedirect = `/auth/login/${request.params.buCode}`;
+  passport.authenticate('oidc', { failureRedirect })(request, response, next);
+}, (request, response) => {
+  response.cookie('idToken', request.user.idToken, cookieOptions);
+  response.cookie('accessToken', request.user.accessToken, cookieOptions);
+  const redirectUrl = `${process.env.FRONT_END_BASE_URL}/${request.params.buCode}`;
+  response.redirect(redirectUrl);
 });
 
-router.get('/logout', (request, response) => {
-  const endSessionUrl = `${process.env.OAUTH_CLIENT_ISSUER}/idp/startSLO.ping`;
-  const postLogoutRedirectUri = 'http://localhost:3000/v1/group';
+router.get('/status/:buCode', oidcMiddleware, (request, response) => {
+  if (request.isAuthenticated()) return response.json(request.user);
+  return response.status(401).send('Unauthorized');
+});
+
+router.post('/logout', (request, response) => {
+  const url = new URL('idp/startSLO.ping', process.env.OAUTH_CLIENT_ISSUER);
+  url.searchParams.append('TargetResource', process.env.FRONT_END_BASE_URL);
   request.session.destroy((err) => {
     if (err) return next(err);
-    response.redirect(`${endSessionUrl}?TargetResource=${postLogoutRedirectUri}`);
+    return response.json({ redirectUrl: url.href });
   });
 });
 
